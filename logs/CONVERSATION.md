@@ -107,6 +107,71 @@ The following is a reconstructed presentation narrative based on the work in thi
 30. **You:** Why should a reviewer select this project?
     **Engineering partner:** Because it demonstrates the complete engineering loop: build, measure, challenge, identify weaknesses, change the design, preserve evidence, and report what remains unproven.
 
+### Thirty-point completion review dialogue
+
+This second reconstructed dialogue answers the review question: “What has been done so far?” It summarizes repository evidence rather than inventing a verbatim conversation.
+
+1. **You:** Is the application implemented?
+   **Engineering partner:** Yes. The FastAPI application, static frontend, Pydantic models, SQLite storage, providers, engine, auditor, challenge, transfer, and evaluation modules are present.
+2. **You:** Is the project runnable?
+   **Engineering partner:** Yes. Windows setup and launch commands are documented and the local health endpoint has been verified.
+3. **You:** Is the UI complete?
+   **Engineering partner:** The UI includes research, challenge, memory, evaluation, run tabs, source inspection, activity traces, responsive styling, and demo controls.
+4. **You:** Is the analyst implemented?
+   **Engineering partner:** Yes. It plans before searching, searches through Tavily, fetches pages, and drafts structured claims.
+5. **You:** Is the auditor implemented?
+   **Engineering partner:** Yes. It independently refetches citations, checks quotes and dimensions, validates calculations, and records verdicts.
+6. **You:** Are claims cited?
+   **Engineering partner:** Each retained claim contains source IDs and structured evidence fields.
+7. **You:** Are unsupported claims hidden?
+   **Engineering partner:** Unsupported claims are withheld or flagged, and the reason is shown as an evidence gap.
+8. **You:** Are correction attempts traceable?
+   **Engineering partner:** Original claims, first audits, revisions, final audits, and explanations are stored.
+9. **You:** Is feedback memory working?
+   **Engineering partner:** Verified checking lessons are stored with scope, evidence, origin, and later uses.
+10. **You:** Is memory isolated during evaluation?
+    **Engineering partner:** Held-out questions use a frozen snapshot and do not write new lessons.
+11. **You:** Is there an offline demo?
+    **Engineering partner:** Challenge Lab and fixture transfer run without Gemini or Tavily credentials.
+12. **You:** Were injected mistakes tested?
+    **Engineering partner:** Six injected errors were caught, three correct controls were not falsely flagged, and one unavailable case stayed unverifiable.
+13. **You:** Is the eight-question suite present?
+    **Engineering partner:** Eight frozen-date questions are defined, with reused entities across training and held-out questions.
+14. **You:** Does the live evaluator save progress?
+    **Engineering partner:** It writes per-question artifacts and the aggregate evaluation report as it runs.
+15. **You:** Was the hanging evaluation fixed?
+    **Engineering partner:** A configurable per-question timeout and progress messages were added.
+16. **You:** Is quota handling safe?
+    **Engineering partner:** Quota and temporary failures do not trigger repeated retries.
+17. **You:** Is fallback honest?
+    **Engineering partner:** The fixture fallback is explicitly labelled and retains no factual claims.
+18. **You:** Can sources be inspected without the model?
+    **Engineering partner:** The source-only online search path does exactly that.
+19. **You:** Is the current model configured?
+    **Engineering partner:** The project uses the configurable `gemini-3.1-flash-lite` identifier.
+20. **You:** Are credentials protected?
+    **Engineering partner:** `.env` is ignored and keys are never committed or displayed to the browser.
+21. **You:** Are dates validated?
+    **Engineering partner:** Requests validate date order, and out-of-range claim years are filtered.
+22. **You:** Are units checked?
+    **Engineering partner:** The auditor checks amount and unit, and calculation inputs are linked to sources.
+23. **You:** Are purity errors handled?
+    **Engineering partner:** 22-carat and 24-carat gold are separate metrics requiring exact source support.
+24. **You:** Are failures visible?
+    **Engineering partner:** Search, fetch, model, quote, timeout, and evaluation failures are recorded in activity and reports.
+25. **You:** Are tests present?
+    **Engineering partner:** The current automated suite passes 36 tests.
+26. **You:** Is the project documented?
+    **Engineering partner:** Root README, project documentation, ABOUT, decisions, log README, conversation narrative, and setup scripts are included.
+27. **You:** Are design decisions defended?
+    **Engineering partner:** The decisions files explain orchestration, independent retrieval, abstention, memory, evaluation, trade-offs, and weaknesses.
+28. **You:** Are development records included?
+    **Engineering partner:** Observable session JSONL, manifest hashes, and the log-folder documentation are included.
+29. **You:** Is everything pushed?
+    **Engineering partner:** The tracked implementation and documentation are pushed to the GitHub `main` branch; `.env` remains private.
+30. **You:** What remains before final submission?
+    **Engineering partner:** Run the live evaluation when quota is available, complete independent human labels, configure verified prices if cost is required, refresh logs, and review the final archive.
+
 ### 1. Build and complete the take-home project
 
 The initial request was to build the Analyst and Auditor project efficiently inside the supplied workspace. The implementation was created as a local FastAPI application with a static frontend, Pydantic contracts, SQLite persistence, Gemini/Tavily adapters, an analyst workflow, an independent auditor, Challenge Lab, feedback memory, evaluation, and trace export.
