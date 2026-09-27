@@ -1,0 +1,28 @@
+[
+  {
+    "source_file": "rollout-2026-09-24T18-58-17-01a0d39a-4387-72c0-91fe-a5ae3efd88ea.jsonl",
+    "source_sha256_at_export": "15a87431b0ba8dbeeb5135bbdc10ce38a4b71e31ec46339399beee5ca1797438",
+    "source_bytes_at_export": 1214898,
+    "export_file": "rollout-2026-09-24T18-58-17-01a0d39a-4387-72c0-91fe-a5ae3efd88ea.jsonl",
+    "export_sha256": "60febd6207cfafc2e048201958463c6ad953d63346aa5fab7ddd2bdc3f2e8c12",
+    "preserved_records": 120,
+    "omitted_record_counts": {
+      "session_meta:metadata": 1,
+      "event_msg:task_started": 2,
+      "response_item:message": 3,
+      "world_state:metadata": 1,
+      "turn_context:metadata": 2,
+      "event_msg:user_message": 2,
+      "event_msg:agent_message": 12,
+      "token_usage_record:metadata": 54,
+      "event_msg:token_count": 53,
+      "event_msg:web_search_end": 4,
+      "response_item:reasoning": 43,
+      "event_msg:patch_apply_end": 17,
+      "event_msg:task_complete": 1,
+      "event_msg:thread_settings_applied": 1
+    },
+    "credential_redactions": 0,
+    "scope": "Actual observable messages and tool records through export time. No summaries or reconstructed content. Active sessions need refresh after the final response."
+  }
+]
