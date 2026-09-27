@@ -41,7 +41,7 @@ notepad .env
 
 `--no-cache-dir` avoids a sandbox-specific Windows pip cache permission stall observed during setup. `requirements.lock.txt` contains the exact dependency versions actually tested; `pyproject.toml` defines supported ranges.
 
-Set `GEMINI_API_KEY` and `TAVILY_API_KEY` in the local environment or `.env`. `GOOGLE_API_KEY` is an alternative model credential. Keep `GEMINI_MODEL` configurable to a model your account can access; the tested adapter configuration defaults to `gemini-2.5-flash`. Restart the app after changing `.env`. **Never paste keys into chat or commit `.env`.** Credentials are sent only in provider request headers. The browser receives readiness flags and missing-variable names, never values.
+Set `GEMINI_API_KEY` and `TAVILY_API_KEY` in the local environment or `.env`. `GOOGLE_API_KEY` is an alternative model credential. Keep `GEMINI_MODEL` configurable to a model your account can access; the adapter defaults to `gemini-3.1-flash-lite`. Restart the app after changing `.env`. **Never paste keys into chat or commit `.env`.** Credentials are sent only in provider request headers. The browser receives readiness flags and missing-variable names, never values.
 
 `GEMINI_SCHEMA_STYLE=legacy` uses `responseMimeType`/`responseJsonSchema`; `format` uses the newer `responseFormat` schema. Both paths are covered with mocked transport tests. Model availability and actual API compatibility still require a successful provider run.
 
