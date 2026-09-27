@@ -56,6 +56,23 @@ When `GEMINI_FALLBACK_MODE=fixture` (the default in `.env.example`), a Gemini HT
 5. Inspect **Feedback memory** and export a trace. Fixture lessons never enter live research.
 6. Once both providers work, ask a question in **Research** and inspect its plan, cited answer, source snapshots, activities, repairs, lessons, and metrics.
 
+## Solutions implemented
+
+EvidenceLoop addresses the take-home problems with a traceable research loop:
+
+- **Unsupported answers:** Every retained claim has structured fields for the entity, metric, value, unit, period, and source IDs. Claims without usable fetched evidence are withheld.
+- **Wrong numbers or units:** The auditor independently fetches cited pages, checks the amount, unit, date, period, metric, and entity, and requires an exact source passage.
+- **22K versus 24K gold mistakes:** Purities are treated as separate metrics. The analyst and auditor must verify the exact purity and never calculate one rate from the other.
+- **Quote and calculation errors:** Exact quote membership and calculation gates reject mismatched passages, invalid arithmetic, and missing calculation inputs.
+- **Stale or out-of-range facts:** Claims with years outside the selected frozen date range are removed and reported as evidence gaps.
+- **Gemini quota or temporary failures:** With `GEMINI_FALLBACK_MODE=fixture`, the app switches once to an explicit no-fact fixture response. It does not retry a 429 and does not pretend the provider succeeded.
+- **Online searching without Gemini:** The **Search sources only** action uses Tavily and page fetching without model calls, so sources can still be inspected during demos or quota outages.
+- **Limited free-tier usage:** `RESEARCH_QUOTA_MODE=low` limits the workflow to two searches, four source pages, and three claims, and skips corroboration and repair calls.
+- **Learning from corrections:** Only corrected claims that pass a fresh audit create scoped feedback lessons. Fixture lessons remain separate from live research.
+- **Reproducible review:** Runs, activities, source snapshots, audits, corrections, memory events, metrics, and errors are stored in SQLite and can be exported as JSON traces.
+
+For a reliable demo, copy `.env.example` to `.env`, add the provider keys, keep `RESEARCH_QUOTA_MODE=low`, run the server, and inspect the **Sources**, **Claim audit**, and **Activity** tabs for the evidence behind each result.
+
 ## Tests and evaluation commands
 
 ```powershell
