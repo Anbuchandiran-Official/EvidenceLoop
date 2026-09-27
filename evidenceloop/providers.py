@@ -53,9 +53,9 @@ class ProviderError(RuntimeError):
 
 
 def is_quota_error(error):
-    """Return true only for provider throttling/unavailability signals."""
+    """Return true for throttling or unusable provider responses eligible for demo fallback."""
     message = str(error).lower()
-    return any(token in message for token in ("http 429", "quota", "rate limit", "temporarily unavailable"))
+    return any(token in message for token in ("http 429", "quota", "rate limit", "temporarily unavailable", "response failed validation"))
 
 
 class FixtureFallbackModel:
