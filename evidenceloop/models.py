@@ -10,8 +10,8 @@ def now() -> str:
 
 class ResearchRequest(BaseModel):
     question: str = Field(min_length=8, max_length=2000)
-    start_date: date = date(2024, 1, 1)
-    end_date: date = date(2025, 12, 31)
+    start_date: date = Field(default_factory=date.today)
+    end_date: date = Field(default_factory=date.today)
     memory_enabled: bool = True
 
     @model_validator(mode="after")
@@ -97,4 +97,3 @@ class Audit(BaseModel):
 class Repair(BaseModel):
     claim: Claim | None
     explanation: str
-
