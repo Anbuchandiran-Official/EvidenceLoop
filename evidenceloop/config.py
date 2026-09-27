@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     gemini_api_key: str = ""
     google_api_key: str = ""
     tavily_api_key: str = ""
-    gemini_model: str = "gemini-2.5-flash"
+    gemini_model: str = "gemini-3.1-flash-lite"
     gemini_schema_style: str = "legacy"
     gemini_fallback_mode: str = "fixture"
     database_path: str = "data/evidenceloop.sqlite3"
