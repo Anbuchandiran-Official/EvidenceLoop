@@ -2,6 +2,46 @@
 
 A small research system for Thuli's **Problem 3: Analyst and Auditor**. It plans before searching, fetches actual source pages, answers in atomic cited claims, independently re-fetches citations, makes one repair attempt per flagged claim, and carries verified checking lessons into later plans.
 
+## Start here
+
+EvidenceLoop is a web application for answering difficult research questions with evidence. Instead of asking one AI call to produce a confident paragraph, it uses two roles:
+
+1. An **analyst** plans the investigation, searches the live web, fetches pages, and drafts small claims with citations.
+2. An **auditor** independently opens the cited pages again and checks whether each claim is actually supported.
+
+The application shows the complete trail: the plan, searches, source snapshots, claims, audit verdicts, corrections, feedback memory, timings, token usage, and failures. If evidence is missing, it reports the gap instead of guessing.
+
+This repository contains the working application, automated tests, an offline Challenge Lab, an eight-question evaluation harness, project documentation, decision records, and observable coding-session logs.
+
+### What problem does it solve?
+
+Normal AI research can cite irrelevant pages, mix dates or units, confuse similar metrics, or invent a plausible answer when a source is unavailable. EvidenceLoop adds explicit checks for those failures. For example, it treats 22-carat and 24-carat gold as separate values, and it does not treat a net store-count increase as proof of gross store openings.
+
+### What you will see in the interface
+
+- **Research** — ask a live question, choose dates, and inspect the cited answer and evidence.
+- **Challenge Lab** — run deterministic offline cases containing deliberately wrong claims, correct controls, and unavailable evidence. This needs no API key.
+- **Feedback memory** — inspect verified checking lessons and where they were later used.
+- **Evaluation** — view the eight-question training and held-out memory comparison report.
+- **Run tabs** — inspect the answer, research plan, claim audit, corrections, sources, activity trace, and memory.
+
+### The complete data path
+
+```text
+Question and date range
+  → analyst plan
+  → parallel web searches
+  → bounded page fetching
+  → atomic cited claims
+  → independent source refetch
+  → audit verdict and exact-quote gate
+  → one correction if needed
+  → verified lesson for later questions
+  → SQLite run and JSON trace
+```
+
+The rest of this README explains installation, configuration, operation, testing, design decisions, evaluation, and limitations. A longer explanation is available in [`PROJECT_DOCUMENTATION.md`](PROJECT_DOCUMENTATION.md), and the design rationale is in [`DECISIONS.md`](DECISIONS.md).
+
 The distinctive experiment is **Challenge → Correct → Transfer**. The interface separates real research from synthetic fixtures. It never presents fixture outcomes as model accuracy.
 
 ## Run on this Windows machine
