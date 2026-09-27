@@ -78,6 +78,17 @@ async def test_auditor_refetches_and_does_not_trust_analyst_text():
     assert result.quote_verified
 
 
+async def test_auditor_recovers_currency_encoding_drift_for_purity_claim():
+    source = Source(id="S1", url="fixture://gold", text="22 karat gold (91.6% purity) costs ₹ 14,000 per gram.")
+    class Model:
+        async def generate(self, role, payload, schema):
+            return Judgment(verdict="SUPPORTED", source_id="S1", passage="22 karat gold costs â© 14,000 per gram.",
+                            explanation="test", mistake_type="none", checked_dimensions=["entity", "amount", "unit", "date", "period", "metric"])
+    claim = make_claim("C1", "The price of 1 gram of 22-carat gold was 14,000.", entity="Gold", metric="22-carat gold rate", value="14,000")
+    result = await audit_claim(claim, [source], FixtureFetcher([source], lambda *a: None), Model(), lambda *a: None)
+    assert result.verdict == "SUPPORTED" and result.quote_verified
+
+
 @pytest.mark.parametrize("url", ["file:///etc/passwd", "http://127.0.0.1/", "http://[::1]/", "https://example.com:9876", "https://user:pass@example.com/", "https://example.com/?token=secret"])
 async def test_fetch_policy_blocks_nonpublic_or_credential_urls(url):
     with pytest.raises(ValueError):

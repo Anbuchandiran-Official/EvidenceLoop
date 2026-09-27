@@ -1,5 +1,6 @@
 import asyncio
 import math
+import re
 
 from .models import Audit, Judgment
 
@@ -21,6 +22,19 @@ entity, amount, unit, date, period, metric. No confidence percentages. Return on
 
 def quote_occurs(passage, text):
     return bool(passage.strip()) and " ".join(passage.split()) in " ".join(text.split())
+
+
+def recover_quote(claim, text):
+    """Recover a source sentence when only currency/punctuation encoding drifted."""
+    value = str(claim.value).replace(",", "")
+    purity = re.search(r"\b(\d{2})[- ]?carat\b", claim.text, re.I)
+    if not value or not purity:
+        return ""
+    for sentence in re.split(r"(?<=[.!?])\s+", text):
+        compact = sentence.replace(",", "")
+        if value in compact and re.search(rf"\b{purity.group(1)}[- ]?karat\b", sentence, re.I):
+            return sentence.strip()
+    return ""
 
 
 def calculation_valid(calculation):
@@ -66,6 +80,11 @@ async def audit_claim(claim, sources, fetcher, model, trace):
                      explanation=f"Independent auditor unavailable ({type(exc).__name__}); no factual verdict.")
     selected = next((s for s in usable if s.id == judgment.source_id), None)
     valid_quote = bool(selected and quote_occurs(judgment.passage, selected.text))
+    if selected and not valid_quote and judgment.verdict == "SUPPORTED":
+        recovered = recover_quote(claim, selected.text)
+        if recovered:
+            judgment.passage = recovered
+            valid_quote = True
     complete = {"entity", "amount", "unit", "date", "period", "metric"}.issubset(judgment.checked_dimensions)
     if not valid_quote or not complete:
         return Audit(claim_id=claim.id, verification_status="QUOTE_MISMATCH" if not valid_quote else "INCOMPLETE_CHECK",
