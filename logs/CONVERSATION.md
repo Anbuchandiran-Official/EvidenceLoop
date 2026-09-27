@@ -208,6 +208,22 @@ The root README, `PROJECT_DOCUMENTATION.md`, `ABOUT.md`, root `DECISIONS.md`, th
 
 The work shows more than accepting a generated implementation. The project repeatedly challenged visible failures: quota exhaustion, invalid model output, wrong date defaults, a hanging evaluation, and purity confusion. The chosen responses favored traceability and abstention over silently making the demo look successful. That is the central reason the project is a stronger submission: it makes the analyst's answer auditable and makes its own weaknesses inspectable.
 
+## Token usage and cost conversation
+
+> **You:** Keep token usage low for searches and for the overall project.
+>
+> **Engineering partner:** The system records provider-reported input, output, thinking, search-credit, timing, and estimated-cost fields for every run. I will not replace those measurements with made-up numbers. Token usage varies with the number and length of fetched source pages, so a short question can still have a large input if a source page is long.
+>
+> **You:** What was changed to reduce usage?
+>
+> **Engineering partner:** Low-quota mode limits live work to two searches, four source pages, and three claims. It skips the reserved corroboration search and repair calls. The Gemini adapter uses bounded output settings, and quota failures are not retried.
+>
+> **You:** How can a reviewer verify the numbers?
+>
+> **Engineering partner:** Open each run trace under `artifacts/` and inspect `metrics.input_tokens`, `metrics.output_tokens_including_thinking`, `metrics.search_credits`, `metrics.elapsed_seconds`, and `metrics.estimated_cost_inr`. Cost remains `unknown` until verified INR price assumptions are entered in `.env`.
+
+The recorded evaluation artifacts demonstrate why honest accounting matters: some runs used only a few hundred input tokens, while others used tens of thousands because the retrieved documents were much longer. The system reports that variation rather than claiming that every search has a small fixed cost. Offline fixture and transfer runs use zero provider tokens and zero provider cost because they make no Gemini or Tavily calls.
+
 ## What was built
 
 EvidenceLoop became a local FastAPI, Pydantic, SQLite, and static-frontend application with these stages:
