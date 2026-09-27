@@ -8,6 +8,12 @@ const badge = (s) => `<span class="badge ${String(s).toLowerCase().replace(/[^a-
 let currentView = 'research', currentRun = null, currentTab = 'answer', pollTimer, config;
 let cachedRuns = [];
 
+// Default new research to today; preset cards can still set historical ranges.
+const todayISO = () => new Date().toISOString().slice(0, 10);
+const defaultToday = todayISO();
+if ($('#start-date')?.value === '2024-01-01') $('#start-date').value = defaultToday;
+if ($('#end-date')?.value === '2025-12-31') $('#end-date').value = defaultToday;
+
 const smartSuggestions = [
   'What jewellery revenue did Titan report for FY2023-24?',
   'How many Kalyan Jewellers showrooms existed at 31 March 2024?',
