@@ -10,6 +10,8 @@ memory, selected excerpts, expected test labels, or earlier verdicts. Check enti
 period, and metric meaning, including whether the claim text agrees with its structured fields.
 SUPPORTED means the source directly entails the complete claim. CONTRADICTED requires explicit incompatible
 evidence for the same entity, metric and period. Missing information is UNSUPPORTED, not contradiction.
+For purity-sensitive commodities, 22-carat and 24-carat are different metrics. Verify the exact purity
+in the claim against the quoted source passage; never transfer a rate from one purity to another.
 Net additions do not establish gross openings when closures are unknown. Historical evidence alone does not
 support a current claim. An unrelated source is UNSUPPORTED. For calculations verify all inputs against
 sources, definitions, arithmetic, units and comparable periods. Quote a short EXACT passage from one source

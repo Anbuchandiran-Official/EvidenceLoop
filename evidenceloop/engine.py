@@ -1,4 +1,5 @@
 import asyncio
+import re
 import uuid
 from time import perf_counter
 from urllib.parse import urlsplit
@@ -16,6 +17,9 @@ source IDs. Do not confuse net additions, closures, gross openings, or total sto
 publication dates from event dates and calendar from fiscal years. If you cannot answer, return no claims
 and explain evidence gaps. Rankings must be limited to a named observed sample unless exhaustive comparable
 coverage is documented. Do not insert unsupported factual answers in coverage or evidence_gaps.
+For purity-sensitive commodities, treat 22-carat and 24-carat as separate metrics. Preserve the purity
+in the claim text and metric, require an exact source statement for that purity, and never infer one rate
+from the other. Reject claims whose explicit year falls outside the requested frozen date range.
 Apply supplied narrow checking lessons, but re-fetch time-sensitive facts. Claims must be supported by the
 specified documents within the question's frozen date scope. High-importance numerical claims should cite
 independent corroboration when available. Never manufacture citations, passages, or facts."""
@@ -144,6 +148,17 @@ class Engine:
             "sources": [s.model_dump() for s in sources if s.status == "OK"],
             "instruction": "Return at most 6 atomic claims. Assign unique IDs. Be explicit about gaps and limited coverage."}, Draft)
         draft.claims = draft.claims[:self.settings.max_claims]
+        start_year, end_year = request.start_date.year, request.end_date.year
+        in_scope, out_of_scope = [], []
+        for claim in draft.claims:
+            years = [int(value) for value in re.findall(r"\b(20\d{2})\b", f"{claim.period} {claim.text}")]
+            if years and any(year < start_year or year > end_year for year in years):
+                out_of_scope.append(claim.id or "claim")
+            else:
+                in_scope.append(claim)
+        if out_of_scope:
+            run["evidence_gaps"].append(f"Withheld out-of-range claims: {', '.join(out_of_scope)}.")
+        draft.claims = in_scope
         for i, claim in enumerate(draft.claims):
             claim.id = f"C{i+1}"
         # Always spend the reserved query on the first important claim lacking domain diversity.
@@ -159,6 +174,9 @@ class Engine:
                     "plan": plan.model_dump(), "draft": draft.model_dump(), "sources": [s.model_dump() for s in sources if s.status == "OK"],
                     "instruction": "Keep at most 6 claims. Add corroborating citations only when they actually support the same metric and period. Report failed corroboration."}, Draft)
                 draft.claims = draft.claims[:self.settings.max_claims]
+                draft.claims = [claim for claim in draft.claims if not (
+                    (years := [int(value) for value in re.findall(r"\b(20\d{2})\b", f"{claim.period} {claim.text}")])
+                    and any(year < request.start_date.year or year > request.end_date.year for year in years))]
                 for i, claim in enumerate(draft.claims):
                     claim.id = f"C{i+1}"
             except ProviderError:
