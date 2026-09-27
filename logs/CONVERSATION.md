@@ -224,6 +224,10 @@ The work shows more than accepting a generated implementation. The project repea
 
 The recorded evaluation artifacts demonstrate why honest accounting matters: some runs used only a few hundred input tokens, while others used tens of thousands because the retrieved documents were much longer. The system reports that variation rather than claiming that every search has a small fixed cost. Offline fixture and transfer runs use zero provider tokens and zero provider cost because they make no Gemini or Tavily calls.
 
+### Token note for the documented conversations
+
+The reconstructed conversations in this file are documentation, not model-provider calls, so they use **zero API tokens**. The offline Challenge Lab and fixture transfer also use zero provider tokens. Live Research conversations are different: Gemini usage is measured from the provider response and shown in each run's metrics; those values must not be replaced with zero.
+
 ## What was built
 
 EvidenceLoop became a local FastAPI, Pydantic, SQLite, and static-frontend application with these stages:
