@@ -97,6 +97,9 @@ class Engine:
             provider={"model": prices.gemini_model, "temperature": 0, "max_searches": prices.max_searches,
                       "max_sources": prices.max_sources, "max_claims": prices.max_claims})
 
+    def low_quota_mode(self):
+        return self.settings.research_quota_mode.lower() == "low"
+
     async def research(self, run, request, *, memory_snapshot=None, write_memory=True, model=None, search=None, fetcher=None):
         started, trace = perf_counter(), self.tracer(run)
         model = model or QuotaFallbackModel(Gemini(self.settings, trace), self.settings, trace)
@@ -126,7 +129,7 @@ class Engine:
             "lessons": [{"rule": x["rule"], "scope": x["scope"]} for x in run["memory_used"]],
             "instruction": "Plan BEFORE searching. parallel_tasks are concrete web search queries, at most 3; reserve one query for cross-checking. State definitions, evidence requirements and stopping rules."}, Plan)
         plan.date_range = f"{request.start_date} through {request.end_date}"
-        plan.parallel_tasks = plan.parallel_tasks[:max(1, self.settings.max_searches - 1)]
+        plan.parallel_tasks = plan.parallel_tasks[:max(1, (2 if self.low_quota_mode() else self.settings.max_searches) - 1)]
         plan.memory_checks = list(dict.fromkeys(plan.memory_checks + [x["rule"] for x in run["memory_used"]]))
         run["plan"] = plan.model_dump()
         trace("plan", {"plan": run["plan"]})
@@ -138,7 +141,7 @@ class Engine:
             else:
                 for result in batch:
                     urls.setdefault(result["url"], result)
-        chosen = list(urls.values())[:max(1, self.settings.max_sources - 2)]
+        chosen = list(urls.values())[:max(1, (4 if self.low_quota_mode() else self.settings.max_sources) - 2)]
         sources = await asyncio.gather(*(fetcher.fetch(x["url"], f"S{i+1}") for i, x in enumerate(chosen)))
         run["sources"] = [s.model_dump() for s in sources]
         if not any(s.status == "OK" for s in sources):
@@ -147,7 +150,7 @@ class Engine:
         draft = await model.generate(ANALYST, {"stage": "draft", "question": request.question, "plan": plan.model_dump(),
             "sources": [s.model_dump() for s in sources if s.status == "OK"],
             "instruction": "Return at most 6 atomic claims. Assign unique IDs. Be explicit about gaps and limited coverage."}, Draft)
-        draft.claims = draft.claims[:self.settings.max_claims]
+        draft.claims = draft.claims[:min(self.settings.max_claims, 3 if self.low_quota_mode() else self.settings.max_claims)]
         start_year, end_year = request.start_date.year, request.end_date.year
         in_scope, out_of_scope = [], []
         for claim in draft.claims:
@@ -163,7 +166,7 @@ class Engine:
             claim.id = f"C{i+1}"
         # Always spend the reserved query on the first important claim lacking domain diversity.
         target = next((c for c in draft.claims if c.importance == "high" and len({urlsplit(s.url).hostname for s in sources if s.id in c.source_ids}) < 2), None)
-        if target and len(plan.parallel_tasks) < self.settings.max_searches:
+        if target and not self.low_quota_mode() and len(plan.parallel_tasks) < self.settings.max_searches:
             try:
                 extra = await search.search(f"{target.entity} {target.metric} {target.period} independent confirmation")
                 new_urls = [x["url"] for x in extra if x["url"] not in urls][:max(0, self.settings.max_sources-len(sources))]
@@ -197,6 +200,13 @@ class Engine:
         self.store.save_run(run)
         for claim, audit in zip(claims, audits):
             if audit.verdict == "SUPPORTED" or audit.verdict is None:
+                final_claims.append(claim.model_dump())
+                final_audits.append(audit.model_dump())
+                continue
+            if self.low_quota_mode():
+                run["repairs"].append(dict(claim_id=claim.id, original=claim.model_dump(), first_verdict=audit.model_dump(),
+                    revision=None, final_verdict=audit.model_dump(), attempt=0,
+                    explanation="Repair skipped in low-quota mode; the first audit result is retained."))
                 final_claims.append(claim.model_dump())
                 final_audits.append(audit.model_dump())
                 continue

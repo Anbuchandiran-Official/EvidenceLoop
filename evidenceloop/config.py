@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     gemini_model: str = "gemini-3-flash-preview"
     gemini_schema_style: str = "legacy"
     gemini_fallback_mode: str = "fixture"
+    research_quota_mode: str = "standard"
     database_path: str = "data/evidenceloop.sqlite3"
     max_searches: int = Field(default=4, ge=2, le=8)
     max_sources: int = Field(default=8, ge=3, le=16)
