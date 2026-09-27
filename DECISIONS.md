@@ -2,6 +2,33 @@
 
 **Scope.** A local research experiment for Thuli Problem 3, using FastAPI, Pydantic, SQLite and a small static frontend. The differentiator is an inspectable challenge, correction and transfer loop. This document is intentionally short enough for two rendered pages with ordinary document settings.
 
+## Design principles
+
+The system follows five principles: evidence must precede a factual answer; generation and verification must be separate; abstention is preferable to unsupported certainty; memory stores checking rules rather than cached answers; and every external call and repair must have a visible budget.
+
+## Architecture
+
+```text
+Browser UI
+  → FastAPI routes
+  → Engine orchestration
+      → lesson retrieval
+      → analyst plan
+      → parallel Tavily searches
+      → bounded HTML/PDF fetching
+      → atomic cited claims
+      → independent auditor refetch
+      → quote and calculation gates
+      → one repair and re-audit
+      → verified lesson write
+  → SQLite runs, sources, audits, repairs, memory and metrics
+  → JSON trace export
+```
+
+The analyst, auditor, storage layer, provider adapters, and frontend are deliberately small and explicit. Async concurrency is used for independent searches and fetches; SQLite is sufficient for the local single-user experiment. Pydantic models connect each state transition so the UI and exported trace show what happened.
+
+## Why these principles shape the implementation
+
 1. **Explicit orchestration instead of an agent framework.** A visible plan precedes searches; async tasks parallelize independent work under fixed limits. Pydantic records connect claims, citations, audits and repairs. A framework or distributed queue would add state and abstractions without improving this experiment. SQLite is adequate for one local user; server restarts mark unfinished work interrupted rather than silently resuming it. More users would require durable jobs and stronger transactional boundaries.
 
 2. **Independent evidence retrieval, with a programmatic provenance gate.** The auditor sees one claim and newly fetched documents, not analyst excerpts, memory or earlier verdicts. An exact-quote check rejects invented evidence. Entity, amount, unit, date, period and metric must be covered. Arithmetic is checked separately, while input meaning still requires judgment. A quote appearing on a page is not proof that it entails a claim; separate contexts using one model family remain vulnerable to correlated errors. This is why fixed external labels and human review exist.
