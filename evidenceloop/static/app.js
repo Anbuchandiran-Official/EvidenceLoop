@@ -344,6 +344,7 @@ async function openRun(id) {
   clearTimeout(pollTimer);
   const run = await api(`/api/runs/${encodeURIComponent(id)}`);
   currentRun = run;
+  if (run.status === 'completed' && run.mode === 'live' && !run.final_claims?.length && run.sources?.length) currentTab = 'sources';
   showView(['live', 'source_search'].includes(run.mode) ? 'research' : 'challenge', true);
   renderRun();
   if (['running', 'queued'].includes(run.status)) {
