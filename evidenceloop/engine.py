@@ -121,7 +121,9 @@ class Engine:
                     rf"\b{purity}\s*[Kk]\b[^.\n]{{0,100}}?(?:INR|Rs\.?|₹|â¹)?\s*([0-9]{{1,3}}(?:,[0-9]{{2,3}})+|[0-9]{{4,6}})",
                     rf"\b{purity}[- ]?(?:carat|karat)\b[^.\n]{{0,100}}?(?:INR|Rs\.?|₹|â¹)?\s*([0-9]{{1,3}}(?:,[0-9]{{2,3}})+|[0-9]{{4,6}})",
                 )
-                match = next((re.search(pattern, text, re.I) for pattern in patterns if re.search(pattern, text, re.I)), None)
+                matches = [re.search(pattern, text, re.I) for pattern in patterns]
+                matches = [item for item in matches if item]
+                match = next((item for item in matches if int(item.group(1).replace(',', '')) not in range(1900, 2101)), None)
                 if not match:
                     continue
                 value = match.group(1)
@@ -219,7 +221,7 @@ class Engine:
                 run.update(claims=[c.model_dump() for c in draft.claims], coverage=draft.coverage,
                            evidence_gaps=run["evidence_gaps"] + draft.evidence_gaps)
                 audits = [Audit(claim_id=c.id, verdict="SUPPORTED", verification_status="VERIFIED",
-                                source_id=c.source_ids[0], passage=next((sentence.strip() for sentence in next(s for s in sources if s.id == c.source_ids).text.splitlines()
+                                source_id=c.source_ids[0], passage=next((sentence.strip() for sentence in next(s for s in sources if s.id == c.source_ids[0]).text.splitlines()
                                     if str(c.value).replace(',', '') in sentence.replace(',', '') and re.search(rf"\b{re.search(r'(22|24)', c.metric).group(1)}\s*[Kk]|\b{re.search(r'(22|24)', c.metric).group(1)}[- ]?(?:carat|karat)", sentence)), ""),
                                 quote_verified=True, explanation="Value and purity were extracted directly from the fetched source row.",
                                 mistake_type="none", checked_dimensions=["entity", "amount", "unit", "date", "period", "metric"],
