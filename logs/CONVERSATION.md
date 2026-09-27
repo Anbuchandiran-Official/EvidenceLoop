@@ -42,6 +42,71 @@ The following is a factual summary of the work, written for a reviewer. It is in
 >
 > **Engineering partner:** I added the root README, full project documentation, design decisions, log README, conversation narrative, raw observable session export, manifest, tests, artifacts, and GitHub commits. The documentation states both what works and what remains provider-dependent.
 
+### Thirty-point professional conversation
+
+The following is a reconstructed presentation narrative based on the work in this repository. It is not a verbatim transcript and should not be treated as raw session evidence.
+
+1. **You:** I need an analyst and auditor system for open web research.
+   **Engineering partner:** We will separate planning, evidence collection, claim drafting, and independent verification.
+2. **You:** The answer must be traceable.
+   **Engineering partner:** Every claim will carry structured source IDs, periods, units, and audit state.
+3. **You:** It should work from a clean checkout.
+   **Engineering partner:** Setup, environment configuration, launch, health checks, tests, and packaging will be documented.
+4. **You:** I want a usable hackathon interface.
+   **Engineering partner:** The UI will expose Research, Challenge Lab, Feedback Memory, Evaluation, and evidence tabs.
+5. **You:** How will the analyst work?
+   **Engineering partner:** It will create a plan before calling search tools and will run independent searches concurrently.
+6. **You:** How will sources be handled?
+   **Engineering partner:** Pages will be fetched, bounded, sanitized, stored, and shown with retrieval status.
+7. **You:** How will claims be represented?
+   **Engineering partner:** As atomic records containing entity, metric, value, unit, period, citation IDs, and optional calculations.
+8. **You:** How do we stop unsupported claims?
+   **Engineering partner:** Claims without usable source evidence are withheld and reported as evidence gaps.
+9. **You:** How does the auditor stay independent?
+   **Engineering partner:** It receives a separate claim-and-source context and refetches the cited pages itself.
+10. **You:** What does the auditor check?
+    **Engineering partner:** Entity, amount, unit, date, period, metric, citation, exact quote, and arithmetic inputs.
+11. **You:** What if the source disagrees?
+    **Engineering partner:** The claim is marked unsupported or contradicted, and the original evidence remains visible.
+12. **You:** Can the system correct an error?
+    **Engineering partner:** It allows one minimal evidence-supported repair followed by a fresh audit.
+13. **You:** Why only one repair?
+    **Engineering partner:** To prevent hidden loops, uncontrolled cost, and corrections that gradually drift away from evidence.
+14. **You:** I want the system to learn across questions.
+    **Engineering partner:** It stores verified checking lessons, not previous answers, and applies scoped lessons to later plans.
+15. **You:** How do we prevent memory leakage in evaluation?
+    **Engineering partner:** Held-out questions use a frozen memory snapshot and disable writes.
+16. **You:** I need offline testing for the demo.
+    **Engineering partner:** Challenge Lab uses deterministic fixture documents and labels, so it runs without provider keys.
+17. **You:** How do we know the auditor is not approving everything?
+    **Engineering partner:** The challenge includes injected errors, correct controls, and an unavailable citation case.
+18. **You:** What did the offline test show?
+    **Engineering partner:** It caught all six injected errors, falsely flagged none of the three controls, and left one unavailable case unverifiable.
+19. **You:** Gemini quota errors are breaking the demo.
+    **Engineering partner:** Quota and temporary failures are detected without repeated retries.
+20. **You:** What happens during fallback?
+    **Engineering partner:** The app records an explicit no-facts fixture response and keeps the fetched sources available.
+21. **You:** Can I still search online without Gemini?
+    **Engineering partner:** Yes. Search sources only uses Tavily and the fetcher without claiming a model-generated answer.
+22. **You:** The model confused 22-carat and 24-carat gold.
+    **Engineering partner:** Purity is now part of the metric, and one purity can never be inferred from the other.
+23. **You:** Dates were also confusing.
+    **Engineering partner:** Claims with explicit years outside the selected frozen range are withheld.
+24. **You:** The live evaluation seemed stuck.
+    **Engineering partner:** Each question now has a configurable wall-clock timeout, progress output, and partial report saving.
+25. **You:** I need cost visibility.
+    **Engineering partner:** Provider usage, search credits, timing, and estimated cost are recorded when verified price assumptions exist.
+26. **You:** What if prices are unknown?
+    **Engineering partner:** The system displays unknown cost instead of inventing billing values.
+27. **You:** What files explain the project?
+    **Engineering partner:** The root README, project documentation, decisions, conversation narrative, tests, artifacts, and session manifest explain different review layers.
+28. **You:** What makes this more than a normal chatbot?
+    **Engineering partner:** It exposes plans, evidence, independent audits, corrections, memory, failures, and limits rather than only displaying prose.
+29. **You:** What is the main weakness?
+    **Engineering partner:** A shared model family can still make correlated semantic errors, so human review remains necessary for live correctness.
+30. **You:** Why should a reviewer select this project?
+    **Engineering partner:** Because it demonstrates the complete engineering loop: build, measure, challenge, identify weaknesses, change the design, preserve evidence, and report what remains unproven.
+
 ### 1. Build and complete the take-home project
 
 The initial request was to build the Analyst and Auditor project efficiently inside the supplied workspace. The implementation was created as a local FastAPI application with a static frontend, Pydantic contracts, SQLite persistence, Gemini/Tavily adapters, an analyst workflow, an independent auditor, Challenge Lab, feedback memory, evaluation, and trace export.
