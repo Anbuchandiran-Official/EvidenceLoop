@@ -94,8 +94,10 @@ class Engine:
             estimated_cost_inr=cost, cost_note="Estimated using configured rates; not a billing measurement." if cost is not None else "Unknown: pricing, usage, or provider response unavailable.",
             usage_complete=not incomplete, price_assumptions={"input_inr_per_million": prices.input_inr_per_million,
                 "output_inr_per_million": prices.output_inr_per_million, "search_inr_per_credit": prices.search_inr_per_credit},
-            provider={"model": prices.gemini_model, "temperature": 0, "max_searches": prices.max_searches,
-                      "max_sources": prices.max_sources, "max_claims": prices.max_claims})
+            provider={"model": prices.gemini_model, "temperature": 0,
+                      "max_searches": 2 if self.low_quota_mode() else prices.max_searches,
+                      "max_sources": 4 if self.low_quota_mode() else prices.max_sources,
+                      "max_claims": 3 if self.low_quota_mode() else prices.max_claims})
 
     def low_quota_mode(self):
         return self.settings.research_quota_mode.lower() == "low"

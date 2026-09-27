@@ -68,8 +68,12 @@ def create_app(settings=None):
 
     @app.get("/api/config")
     def config():
+        low_quota = settings.research_quota_mode.lower() == "low"
         return {"live_ready": not settings.missing(), "missing": settings.missing(), "model_ready": bool(settings.model_key),
-                "model": settings.gemini_model, "budgets": {"searches": settings.max_searches, "sources": settings.max_sources, "claims": settings.max_claims}}
+                "model": settings.gemini_model, "quota_mode": settings.research_quota_mode,
+                "budgets": {"searches": 2 if low_quota else settings.max_searches,
+                             "sources": 4 if low_quota else settings.max_sources,
+                             "claims": 3 if low_quota else settings.max_claims}}
 
     @app.post("/api/runs", status_code=202)
     async def start_run(request: ResearchRequest):
