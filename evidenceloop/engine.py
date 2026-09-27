@@ -211,10 +211,9 @@ class Engine:
         draft = await model.generate(ANALYST, {"stage": "draft", "question": request.question, "plan": plan.model_dump(),
             "sources": [s.model_dump() for s in sources if s.status == "OK"],
             "instruction": "Return at most 6 atomic claims. Assign unique IDs. Be explicit about gaps and limited coverage."}, Draft)
-        if getattr(model, "active", False) and not draft.claims:
+        if isinstance(model, QuotaFallbackModel) and model.active and not draft.claims:
             extracted = self._gold_source_claims(request.question, sources, request.end_date,
                                                  3 if self.low_quota_mode() else self.settings.max_claims)
-            trace("source_fallback", {"matched_claims": len(extracted), "reason": "Gemini unavailable"})
             if extracted:
                 draft.claims = extracted
                 draft.coverage = "Source-derived emergency fallback: explicit gold-rate rows were extracted from fetched pages because Gemini was unavailable."
