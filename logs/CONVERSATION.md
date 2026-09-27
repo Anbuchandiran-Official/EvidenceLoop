@@ -12,6 +12,36 @@ The goal was to build Thuli Problem 3: an analyst that researches open questions
 
 The following is a factual summary of the work, written for a reviewer. It is intentionally a summary rather than an invented transcript; the raw observable messages and tool records remain in the JSONL export.
 
+### Reconstructed project dialogue
+
+> **You:** Build my Thuli Problem 3 project and make it efficient, complete, and runnable.
+>
+> **Engineering partner:** I built EvidenceLoop as a local Analyst and Auditor workspace. The analyst plans before searching, uses Tavily and page fetching, writes cited atomic claims, and the auditor independently refetches and verifies them.
+>
+> **You:** Make the UI professional enough for a hackathon and explain how I can run it.
+>
+> **Engineering partner:** I organized the interface into Research, Challenge Lab, Feedback Memory, and Evaluation. I documented Windows setup, `.env` configuration, server launch, health checks, tests, and packaging.
+>
+> **You:** Gemini is failing with quota and validation errors. I do not want the demo to break.
+>
+> **Engineering partner:** I kept the Gemini integration intact, stopped repeated retries, and added an explicit fixture fallback for quota or temporary provider failures. It preserves the response schema, records the fallback, retains no fake factual claims, and leaves fetched sources visible.
+>
+> **You:** I want online search even when the model is unavailable.
+>
+> **Engineering partner:** I added **Search sources only**, which uses Tavily and the page fetcher without Gemini. It reports the fetched evidence without pretending that a model-generated answer exists.
+>
+> **You:** The gold search confused 22-carat and 24-carat values.
+>
+> **Engineering partner:** I tightened both analyst and auditor rules so purity is part of the metric. A 22-carat source row cannot support a 24-carat claim, and one purity is never inferred from the other.
+>
+> **You:** The live evaluation appears to hang.
+>
+> **Engineering partner:** I added progress output, partial report saving, and a configurable per-question timeout. The command now ends with an explicit incomplete report instead of waiting indefinitely.
+>
+> **You:** Add the architecture, decisions, logs, and everything a reviewer needs.
+>
+> **Engineering partner:** I added the root README, full project documentation, design decisions, log README, conversation narrative, raw observable session export, manifest, tests, artifacts, and GitHub commits. The documentation states both what works and what remains provider-dependent.
+
 ### 1. Build and complete the take-home project
 
 The initial request was to build the Analyst and Auditor project efficiently inside the supplied workspace. The implementation was created as a local FastAPI application with a static frontend, Pydantic contracts, SQLite persistence, Gemini/Tavily adapters, an analyst workflow, an independent auditor, Challenge Lab, feedback memory, evaluation, and trace export.
