@@ -73,6 +73,26 @@ EvidenceLoop addresses the take-home problems with a traceable research loop:
 
 For a reliable demo, copy `.env.example` to `.env`, add the provider keys, keep `RESEARCH_QUOTA_MODE=low`, run the server, and inspect the **Sources**, **Claim audit**, and **Activity** tabs for the evidence behind each result.
 
+## How this submission is assessed
+
+### Clean-checkout gate
+
+The repository is designed to run from a clean Windows checkout using the commands in this README. The setup script creates the virtual environment and installs the locked dependencies; `scripts/run.ps1` starts the local server and checks `/health`. The application does not require a Node build, a separate database service, or browser credentials. Provider keys are supplied privately through `.env`, which is ignored by Git.
+
+The write-up is this README together with `ABOUT.md` and `DECISIONS.md`. A final package created by `scripts/package.ps1` includes the generated verification artifacts and session records without including `.env`, `.venv`, or local database files. Run `scripts/export_session.py` after the final coding session to refresh the observable JSONL session export and hash manifest.
+
+### Why the design choices matter
+
+The system separates the analyst from the auditor because a single model call cannot reliably verify its own claims. The analyst plans and searches; the auditor receives an isolated claim-and-source context, refetches the citation, checks the six evidence dimensions, and can trigger only one repair. This makes failures visible in the trace instead of hiding them in a polished paragraph.
+
+The application stores structured claims rather than rendering an uncited answer. It abstains when evidence is missing, treats 22K and 24K gold as different metrics, and records fetch failures and quote mismatches. Feedback memory is scoped to verified corrections and is frozen for held-out evaluation so it cannot leak answers between arms.
+
+### Honest limitations and measured decisions
+
+The offline challenge caught all six injected errors, falsely flagged none of the three correct controls, and marked one unavailable case unverifiable. The transfer fixture demonstrated lesson retrieval but did not claim an accuracy improvement. The full live evaluation remains provider-dependent: Gemini quota/rate limits can leave the 12-run report incomplete, and live claims still require independent human labels. Cost remains unknown until verified token and search prices are supplied.
+
+The project deliberately records those limitations as blockers rather than converting fixture results or provider fallbacks into claimed live accuracy. The explicit fixture fallback keeps demos usable, but it retains no factual claims; **Search sources only** exposes fetched web evidence without pretending that a model-generated answer exists. This is the main trade-off between a reliable demo and an honest research result.
+
 ## Tests and evaluation commands
 
 ```powershell
