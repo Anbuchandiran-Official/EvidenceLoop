@@ -49,6 +49,10 @@ def finalize_report(report):
 
 async def evaluate(args):
     settings = Settings()
+    # The assignment's live evaluation must never leave one question hanging for
+    # the normal server's generous 10-minute demo budget. Keep each evaluation
+    # question below the requested two-minute ceiling.
+    settings.run_timeout_seconds = min(settings.run_timeout_seconds, args.question_timeout)
     store = Store(args.database)
     engine = Engine(settings, store)
     output = Path(args.output)
@@ -80,6 +84,7 @@ async def evaluate(args):
     engine = Engine(settings, store)
     # Train only on Q1–Q4. Freeze the resulting memory before any held-out question.
     for q in QUESTIONS[:4]:
+        print(f"Running {q['id']} (training)...", flush=True)
         req = ResearchRequest(**{k: q[k] for k in ("question", "start_date", "end_date")})
         run = engine.create(req.question)
         await engine.research(run, req)
@@ -93,6 +98,7 @@ async def evaluate(args):
         pair = {"question_id": q["id"], "arms": {}}
         # Alternate order to reduce consistent time/order advantage.
         for enabled in ([False, True] if i % 2 == 0 else [True, False]):
+            print(f"Running {q['id']} ({'memory_on' if enabled else 'memory_off'})...", flush=True)
             req = ResearchRequest(**{k: q[k] for k in ("question", "start_date", "end_date")}, memory_enabled=enabled)
             run = engine.create(req.question, memory_enabled=enabled)
             await engine.research(run, req, memory_snapshot=copy.deepcopy(snapshot), write_memory=False)
@@ -111,6 +117,8 @@ def main():
     parser.add_argument("--mode", choices=["fixture", "challenge-model", "live"], default="fixture")
     parser.add_argument("--database", default="data/evaluation.sqlite3")
     parser.add_argument("--output", default="artifacts")
+    parser.add_argument("--question-timeout", type=int, default=120,
+                        help="Maximum seconds allowed for each live question (default: 120).")
     asyncio.run(evaluate(parser.parse_args()))
 
 
