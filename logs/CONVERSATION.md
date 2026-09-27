@@ -8,6 +8,46 @@ This file gives a reviewer a concise, submission-safe account of how EvidenceLoo
 
 The goal was to build Thuli Problem 3: an analyst that researches open questions from the live web and a second auditor that independently checks whether the analyst is telling the truth. The important requirement was not merely to produce attractive answers. It was to show a visible plan, real tool use, citations, independent verification, memory across questions, full traces, and honest uncertainty.
 
+## Conversation summary from the beginning
+
+The following is a factual summary of the work, written for a reviewer. It is intentionally a summary rather than an invented transcript; the raw observable messages and tool records remain in the JSONL export.
+
+### 1. Build and complete the take-home project
+
+The initial request was to build the Analyst and Auditor project efficiently inside the supplied workspace. The implementation was created as a local FastAPI application with a static frontend, Pydantic contracts, SQLite persistence, Gemini/Tavily adapters, an analyst workflow, an independent auditor, Challenge Lab, feedback memory, evaluation, and trace export.
+
+### 2. Make it runnable and explain the procedure
+
+The setup and run procedure was documented for Windows. `.env.example`, `scripts/setup.ps1`, `scripts/run.ps1`, health checks, API documentation, tests, and packaging commands were added or verified. The server was repeatedly started locally and the health endpoint returned `status: ok`.
+
+### 3. Improve the UI for a hackathon demonstration
+
+The research workspace was refined into a professional evidence dashboard with navigation for Research, Challenge Lab, Feedback Memory, and Evaluation. Run tabs show the cited answer, plan, claim audit, corrections, sources, activity, and memory. A splash animation, responsive layout, source-only action, status badges, and clearer failure states were added to make the workflow understandable during a live demo.
+
+### 4. Configure providers and control free-tier usage
+
+The project was configured with environment variables for Gemini and Tavily. The model was moved to the valid structured-output identifier `gemini-3.1-flash-lite`. Low-quota mode limits searches, pages, and claims, while provider keys remain private in `.env`.
+
+### 5. Handle quota and validation failures safely
+
+Live testing exposed Gemini HTTP 429 quota responses and structured-output validation failures. The implementation was changed so the app does not repeatedly retry these failures. In fixture fallback mode, it records a clear provider fallback, retains no invented factual claims, and keeps fetched sources available. A separate online source-search mode allows source inspection without Gemini.
+
+### 6. Fix the gold-rate evidence problem
+
+A live gold-rate result showed that 22-carat and 24-carat values could be confused. The prompts and verification rules were tightened so purity is part of the metric and must be stated by the source. The auditor cannot transfer a value from one purity to the other. This was treated as a correctness issue rather than hidden in the UI.
+
+### 7. Make evaluation finish predictably
+
+The live evaluation initially appeared to hang while provider and network calls waited. A configurable per-question timeout was added, with progress printed for each training and memory arm and partial results saved to `artifacts/evaluation.json`. The command now ends with an explicit incomplete report when provider access prevents completion.
+
+### 8. Document and publish the work
+
+The root README, `PROJECT_DOCUMENTATION.md`, `ABOUT.md`, root `DECISIONS.md`, this log README, this conversation narrative, and the log-folder decisions file were expanded for clean-checkout review. The repository was pushed to GitHub with the implementation, tests, documentation, and observable session export. API keys and local `.env` files remain excluded.
+
+## What the applicant demonstrated
+
+The work shows more than accepting a generated implementation. The project repeatedly challenged visible failures: quota exhaustion, invalid model output, wrong date defaults, a hanging evaluation, and purity confusion. The chosen responses favored traceability and abstention over silently making the demo look successful. That is the central reason the project is a stronger submission: it makes the analyst's answer auditable and makes its own weaknesses inspectable.
+
 ## What was built
 
 EvidenceLoop became a local FastAPI, Pydantic, SQLite, and static-frontend application with these stages:
