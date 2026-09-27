@@ -123,6 +123,30 @@ class Engine:
             self.store.save_run(run)
         return run
 
+    async def source_search(self, run, request):
+        """Run online search and page retrieval without any Gemini calls."""
+        started, trace = perf_counter(), self.tracer(run)
+        search, fetcher = Tavily(self.settings, trace), Fetcher(self.settings, trace)
+        run.update(status="running", request=request.model_dump(mode="json"),
+                   plan={"mode": "online_source_search", "query": request.question,
+                         "stopping_conditions": ["Return fetched sources only; do not generate factual claims"]})
+        try:
+            results = await search.search(request.question)
+            results = results[:2 if self.low_quota_mode() else self.settings.max_searches]
+            sources = await asyncio.gather(*(fetcher.fetch(item["url"], f"S{i+1}") for i, item in enumerate(results)))
+            run["sources"] = [source.model_dump() for source in sources]
+            run["coverage"] = "Online source search only. Review the fetched pages and passages; no model-generated answer was produced."
+            if not any(source.status == "OK" for source in sources):
+                run["evidence_gaps"].append("Search returned no pages that could be fetched.")
+            run["status"] = "completed"
+        except Exception as exc:
+            run.update(status="failed", error=str(exc) if isinstance(exc, ProviderError) else f"Source search failed ({type(exc).__name__})")
+            trace("error", {"message": run["error"]})
+        finally:
+            self.finish_metrics(run, started)
+            self.store.save_run(run)
+        return run
+
     async def _research(self, run, request, model, search, fetcher, trace, memory_snapshot, write_memory):
         run["memory_used"] = self.store.use_lessons(request.question, run["id"], "live", memory_snapshot) if request.memory_enabled else []
         trace("memory_read", {"lesson_ids": [x["id"] for x in run["memory_used"]], "enabled": request.memory_enabled})

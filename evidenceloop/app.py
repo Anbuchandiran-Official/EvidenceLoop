@@ -84,6 +84,15 @@ def create_app(settings=None):
         launch(engine.research(run, request))
         return {"id": run["id"]}
 
+    @app.post("/api/source-search", status_code=202)
+    async def source_search(request: ResearchRequest):
+        available()
+        if not settings.tavily_api_key:
+            raise HTTPException(503, "Configure TAVILY_API_KEY locally for online source search")
+        run = engine.create(request.question, "source_search", request.memory_enabled)
+        launch(engine.source_search(run, request))
+        return {"id": run["id"]}
+
     @app.post("/api/challenge", status_code=202)
     async def start_challenge(request: ChallengeRequest):
         available()

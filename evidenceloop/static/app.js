@@ -256,6 +256,24 @@ if (researchForm) {
   });
 }
 
+// Online source search: Tavily search and page retrieval, no Gemini calls.
+const sourceSearchBtn = $('#source-search-submit');
+if (sourceSearchBtn) {
+  sourceSearchBtn.addEventListener('click', async () => {
+    if ($('#start-date').value > $('#end-date').value) { toast('The start date must precede the end date.'); return; }
+    sourceSearchBtn.disabled = true;
+    sourceSearchBtn.innerHTML = '<span>Searching sources…</span>';
+    try {
+      const result = await api('/api/source-search', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({
+        question: $('#question').value, start_date: $('#start-date').value, end_date: $('#end-date').value,
+        memory_enabled: $('#memory-enabled').checked
+      })});
+      currentTab = 'sources'; await openRun(result.id); $('#run-panel').scrollIntoView({behavior:'smooth'});
+    } catch (e) { toast(e.message); }
+    finally { sourceSearchBtn.disabled = false; sourceSearchBtn.innerHTML = '<span>Search sources only</span><span class="btn-arrow" aria-hidden="true">↗</span>'; }
+  });
+}
+
 // Challenge Start
 const challengeStart = $('#challenge-start');
 if (challengeStart) {
@@ -326,7 +344,7 @@ async function openRun(id) {
   clearTimeout(pollTimer);
   const run = await api(`/api/runs/${encodeURIComponent(id)}`);
   currentRun = run;
-  showView(run.mode === 'live' ? 'research' : 'challenge', true);
+  showView(['live', 'source_search'].includes(run.mode) ? 'research' : 'challenge', true);
   renderRun();
   if (['running', 'queued'].includes(run.status)) {
     pollTimer = setTimeout(() => openRun(id).catch(e => toast(e.message)), 1200);
@@ -344,7 +362,7 @@ function renderRun() {
   const emptyState = $('#empty-state');
   if (emptyState) emptyState.classList.add('hidden');
   
-  $('#run-mode').textContent = `${r.mode === 'live' ? 'LIVE RESEARCH' : 'CHALLENGE · SYNTHETIC DOCUMENTS'} / ${r.id}`;
+  $('#run-mode').textContent = `${r.mode === 'live' ? 'LIVE RESEARCH' : r.mode === 'source_search' ? 'ONLINE SOURCES ONLY' : 'CHALLENGE · SYNTHETIC DOCUMENTS'} / ${r.id}`;
   $('#run-question').textContent = r.question;
   $('#run-status').outerHTML = `<span id="run-status" class="badge ${escapeHTML(r.status)}">${escapeHTML(r.status)}</span>`;
   $('#export-run').href = `/api/runs/${encodeURIComponent(r.id)}/export`;
