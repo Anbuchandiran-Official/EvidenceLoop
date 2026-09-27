@@ -5,7 +5,7 @@ from time import perf_counter
 from urllib.parse import urlsplit
 
 from .auditor import audit_claim
-from .models import Audit, Claim, Draft, Plan, Repair, now
+from .models import Draft, Plan, Repair, now
 from .providers import Fetcher, FixtureFallbackModel, Gemini, ProviderError, Tavily, is_quota_error
 
 
@@ -102,39 +102,6 @@ class Engine:
     def low_quota_mode(self):
         return self.settings.research_quota_mode.lower() == "low"
 
-    @staticmethod
-    def _gold_source_claims(question, sources, period, limit):
-        """Extract only explicit 22K/24K per-gram rows when Gemini is unavailable.
-
-        This is a narrow, source-grounded emergency path for the common demo query. It
-        never calculates one purity from the other and never uses search snippets.
-        """
-        if not re.search(r"\bgold\b|\bkarat\b|\bcarat\b", question, re.I):
-            return []
-        claims = []
-        for source in sources:
-            if source.status != "OK":
-                continue
-            text = source.text
-            for purity in (24, 22):
-                patterns = (
-                    rf"\b{purity}\s*[Kk]\b[^.\n]{{0,100}}?(?:INR|Rs\.?|₹|â¹)?\s*([0-9]{{1,3}}(?:,[0-9]{{2,3}})+|[0-9]{{4,6}})",
-                    rf"\b{purity}[- ]?(?:carat|karat)\b[^.\n]{{0,100}}?(?:INR|Rs\.?|₹|â¹)?\s*([0-9]{{1,3}}(?:,[0-9]{{2,3}})+|[0-9]{{4,6}})",
-                )
-                match = next((re.search(pattern, text, re.I) for pattern in patterns if re.search(pattern, text, re.I)), None)
-                if not match:
-                    continue
-                value = match.group(1)
-                sentence = match.group(0).strip()
-                claims.append(Claim(
-                    id=f"C{len(claims) + 1}",
-                    text=f"On {period.strftime('%B')} {period.day}, {period.year}, the price of 1 gram of {purity}-carat gold in Chennai was INR {value}.",
-                    entity="Chennai", metric=f"{purity}-carat gold rate", value=value,
-                    unit="INR per gram", period=period.isoformat(), source_ids=[source.id], importance="high"))
-                if len(claims) >= limit:
-                    return claims
-        return claims
-
     async def research(self, run, request, *, memory_snapshot=None, write_memory=True, model=None, search=None, fetcher=None):
         started, trace = perf_counter(), self.tracer(run)
         model = model or QuotaFallbackModel(Gemini(self.settings, trace), self.settings, trace)
@@ -209,25 +176,6 @@ class Engine:
         draft = await model.generate(ANALYST, {"stage": "draft", "question": request.question, "plan": plan.model_dump(),
             "sources": [s.model_dump() for s in sources if s.status == "OK"],
             "instruction": "Return at most 6 atomic claims. Assign unique IDs. Be explicit about gaps and limited coverage."}, Draft)
-        if isinstance(model, QuotaFallbackModel) and model.active and not draft.claims:
-            extracted = self._gold_source_claims(request.question, sources, request.end_date,
-                                                 3 if self.low_quota_mode() else self.settings.max_claims)
-            if extracted:
-                draft.claims = extracted
-                draft.coverage = "Source-derived emergency fallback: explicit gold-rate rows were extracted from fetched pages because Gemini was unavailable."
-                draft.evidence_gaps = ["Gemini was unavailable; only explicit 22K/24K source rows were retained."]
-                run.update(claims=[c.model_dump() for c in draft.claims], coverage=draft.coverage,
-                           evidence_gaps=run["evidence_gaps"] + draft.evidence_gaps)
-                audits = [Audit(claim_id=c.id, verdict="SUPPORTED", verification_status="VERIFIED",
-                                source_id=c.source_ids[0], passage=next((sentence.strip() for sentence in next(s for s in sources if s.id == c.source_ids).text.splitlines()
-                                    if str(c.value).replace(',', '') in sentence.replace(',', '') and re.search(rf"\b{re.search(r'(22|24)', c.metric).group(1)}\s*[Kk]|\b{re.search(r'(22|24)', c.metric).group(1)}[- ]?(?:carat|karat)", sentence)), ""),
-                                quote_verified=True, explanation="Value and purity were extracted directly from the fetched source row.",
-                                mistake_type="none", checked_dimensions=["entity", "amount", "unit", "date", "period", "metric"],
-                                sources=[s for s in sources if s.id in c.source_ids]) for c in draft.claims]
-                run.update(audits=[a.model_dump() for a in audits], final_claims=[c.model_dump() for c in draft.claims],
-                           final_audits=[a.model_dump() for a in audits])
-                self.store.save_run(run)
-                return
         draft.claims = draft.claims[:min(self.settings.max_claims, 3 if self.low_quota_mode() else self.settings.max_claims)]
         start_year, end_year = request.start_date.year, request.end_date.year
         in_scope, out_of_scope = [], []
