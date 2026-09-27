@@ -5,7 +5,7 @@ from urllib.parse import urlsplit
 
 from .auditor import audit_claim
 from .models import Draft, Plan, Repair, now
-from .providers import Fetcher, Gemini, ProviderError, Tavily
+from .providers import Fetcher, FixtureFallbackModel, Gemini, ProviderError, Tavily, is_quota_error
 
 
 ANALYST = """You are a careful research analyst. Produce only the requested JSON, never hidden reasoning.
@@ -29,6 +29,26 @@ LESSONS = {
     "entity": ("Match the exact company or subsidiary to the source before attributing its figures.", ["company", "retail", "revenue", "funding", "store"]),
     "unit": ("Check the currency, scale, and unit of each reported amount before comparisons.", ["revenue", "funding", "amount", "crore", "million"]),
 }
+
+
+class QuotaFallbackModel:
+    """Use Gemini normally; switch once to the explicit fixture fallback on 429."""
+    def __init__(self, primary, settings, trace):
+        self.primary, self.settings, self.trace = primary, settings, trace
+        self.fallback = FixtureFallbackModel()
+        self.active = False
+
+    async def generate(self, role, payload, schema):
+        if self.active:
+            return await self.fallback.generate(role, payload, schema)
+        try:
+            return await self.primary.generate(role, payload, schema)
+        except ProviderError as exc:
+            if self.settings.gemini_fallback_mode.lower() != "fixture" or not is_quota_error(exc):
+                raise
+            self.active = True
+            self.trace("fallback", {"stage": payload.get("stage"), "mode": "fixture", "reason": "Gemini quota or temporary unavailability; no retry"})
+            return await self.fallback.generate(role, payload, schema)
 
 
 class Engine:
@@ -75,7 +95,7 @@ class Engine:
 
     async def research(self, run, request, *, memory_snapshot=None, write_memory=True, model=None, search=None, fetcher=None):
         started, trace = perf_counter(), self.tracer(run)
-        model = model or Gemini(self.settings, trace)
+        model = model or QuotaFallbackModel(Gemini(self.settings, trace), self.settings, trace)
         search = search or Tavily(self.settings, trace)
         fetcher = fetcher or Fetcher(self.settings, trace)
         run.update(status="running", request=request.model_dump(mode="json"))

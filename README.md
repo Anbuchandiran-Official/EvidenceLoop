@@ -45,6 +45,8 @@ Set `GEMINI_API_KEY` and `TAVILY_API_KEY` in the local environment or `.env`. `G
 
 `GEMINI_SCHEMA_STYLE=legacy` uses `responseMimeType`/`responseJsonSchema`; `format` uses the newer `responseFormat` schema. Both paths are covered with mocked transport tests. Model availability and actual API compatibility still require a successful provider run.
 
+When `GEMINI_FALLBACK_MODE=fixture` (the default in `.env.example`), a Gemini HTTP 429, quota, or temporary-unavailable response switches the current run once to the existing explicit fixture-style fallback. It records a `fallback` activity event, returns the normal plan/draft schema, retains no factual claims, and does not retry Gemini. Set `GEMINI_FALLBACK_MODE=off` for strict production behavior that surfaces provider failures instead.
+
 ## What to try
 
 1. Open **Challenge lab**, select **Offline fixture rules**, and run the challenge.

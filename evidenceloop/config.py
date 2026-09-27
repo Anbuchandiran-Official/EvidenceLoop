@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     tavily_api_key: str = ""
     gemini_model: str = "gemini-2.5-flash"
     gemini_schema_style: str = "legacy"
+    gemini_fallback_mode: str = "fixture"
     database_path: str = "data/evidenceloop.sqlite3"
     max_searches: int = Field(default=4, ge=2, le=8)
     max_sources: int = Field(default=8, ge=3, le=16)

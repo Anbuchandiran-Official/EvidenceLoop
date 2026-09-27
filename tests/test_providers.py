@@ -4,9 +4,9 @@ import httpx
 import pytest
 
 from evidenceloop.config import Settings
-from evidenceloop.models import Judgment
-from evidenceloop.models import Draft
+from evidenceloop.models import Judgment, Draft, Plan
 from evidenceloop.providers import Gemini, ProviderError, Tavily, gemini_schema
+from evidenceloop.engine import QuotaFallbackModel
 
 
 def mock_client(monkeypatch, handler):
@@ -73,3 +73,21 @@ def test_gemini_schema_resolves_optional_refs_and_supported_subset():
     assert "$ref" not in str(schema)
     assert calculation["type"] == "object"
     assert "title" not in str(schema)
+
+
+async def test_quota_fallback_switches_once_to_fixture(monkeypatch):
+    class Primary:
+        calls = 0
+        async def generate(self, role, payload, schema):
+            self.calls += 1
+            raise ProviderError("Gemini HTTP 429; check quota")
+    events = []
+    settings = Settings(_env_file=None, gemini_fallback_mode="fixture")
+    primary = Primary()
+    model = QuotaFallbackModel(primary, settings, lambda kind, detail: events.append((kind, detail)))
+    first = await model.generate("analyst", {"stage": "plan", "question": "What happened?", "date_range": "2024"}, Plan)
+    second = await model.generate("analyst", {"stage": "draft", "question": "What happened?"}, Draft)
+    assert first.parallel_tasks == ["What happened?"]
+    assert second.claims == [] and "fallback" in second.coverage
+    assert primary.calls == 1
+    assert [kind for kind, _ in events].count("fallback") == 1

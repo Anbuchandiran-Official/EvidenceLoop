@@ -11,7 +11,7 @@ import httpx
 from bs4 import BeautifulSoup
 from pypdf import PdfReader
 
-from .models import Source
+from .models import Draft, Judgment, Plan, Repair, Source
 
 
 def gemini_schema(model):
@@ -50,6 +50,36 @@ def gemini_schema(model):
 
 class ProviderError(RuntimeError):
     """Safe, deliberately body-free provider failure."""
+
+
+def is_quota_error(error):
+    """Return true only for provider throttling/unavailability signals."""
+    message = str(error).lower()
+    return any(token in message for token in ("http 429", "quota", "rate limit", "temporarily unavailable"))
+
+
+class FixtureFallbackModel:
+    """Explicit demo response used when Gemini is throttled.
+
+    It returns the same Pydantic structures as Gemini, but never invents facts.
+    A fallback plan leads to an empty, clearly labelled draft with evidence gaps.
+    """
+    async def generate(self, role, payload, schema):
+        stage = payload.get("stage")
+        if schema is Plan:
+            question = payload.get("question", "the submitted question")
+            return Plan(entities=[], subquestions=[question], date_range=payload.get("date_range", ""),
+                        metric_definitions=[], required_evidence=["A successfully fetched source page"],
+                        parallel_tasks=[question], stopping_conditions=["Do not retain unsupported claims"], memory_checks=[])
+        if schema is Draft:
+            return Draft(claims=[], evidence_gaps=["Demo fixture fallback active: Gemini was unavailable, so no factual claim was generated."],
+                         coverage="Demo fixture fallback; no factual answer retained because the model provider was unavailable.")
+        if schema is Repair:
+            return Repair(claim=None, explanation="Demo fixture fallback cannot repair claims without model verification.")
+        if schema is Judgment:
+            return Judgment(verdict="UNSUPPORTED", source_id="", passage="", explanation="Demo fixture fallback did not evaluate a factual claim.",
+                            mistake_type="other", checked_dimensions=[])
+        raise TypeError(f"Unsupported fallback schema: {schema.__name__}")
 
 
 def has_url_credentials(url):
