@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "evidenceloop"
+version = "0.1.0"
+description = "Plan, research, independently audit, and transfer evidence-backed lessons."
+requires-python = ">=3.10"
+dependencies = ["fastapi>=0.115,<1", "uvicorn>=0.30,<1", "httpx>=0.27,<1", "pydantic>=2.9,<3", "pydantic-settings>=2.5,<3", "beautifulsoup4>=4.12,<5", "pypdf>=5,<7"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<10", "pytest-asyncio>=0.24,<2", "playwright>=1.49,<2"]
+
+[tool.setuptools.packages.find]
+include = ["evidenceloop*"]
+
+[tool.setuptools.package-data]
+evidenceloop = ["static/*"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

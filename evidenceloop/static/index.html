@@ -1,0 +1,571 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1e40af">
+  <title>EvidenceLoop · Autonomous Analyst & Auditor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+  <script src="/static/app.js" defer></script>
+</head>
+<body>
+  <div id="app-splash" class="app-splash" aria-label="Loading EvidenceLoop" role="status">
+    <div class="splash-brand"><span class="splash-mark">e<span>?</span></span><strong>EvidenceLoop</strong></div>
+    <div class="splash-progress" aria-hidden="true"><span></span></div>
+  </div>
+  <!-- Ambient background glow elements -->
+  <div class="ambient-glow glow-1" aria-hidden="true"></div>
+  <div class="ambient-glow glow-2" aria-hidden="true"></div>
+
+  <!-- Top Sticky Navigation Bar -->
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="header-left">
+        <a class="brand" href="/" aria-label="EvidenceLoop Home">
+          <div class="brand-mark" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/>
+              <path d="m9 12 2 2 4-4"/>
+            </svg>
+          </div>
+          <div class="brand-text">
+            <span class="brand-title">EvidenceLoop</span>
+            <span class="brand-badge">Analyst & Auditor</span>
+          </div>
+        </a>
+
+        <!-- Main Navigation Links -->
+        <nav class="nav-links" aria-label="Main navigation">
+          <button class="nav-link active" data-view="research">
+            <span class="nav-link-icon" aria-hidden="true">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            </span>
+            <span>Research</span>
+          </button>
+          <button class="nav-link" data-view="challenge">
+            <span class="nav-link-icon" aria-hidden="true">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            </span>
+            <span>Challenge Lab</span>
+            <span class="badge-mini">10 Tests</span>
+          </button>
+          <button class="nav-link" data-view="memory">
+            <span class="nav-link-icon" aria-hidden="true">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10M6 10h10M6 14h6"/></svg>
+            </span>
+            <span>Feedback Memory</span>
+            <span id="memory-count" class="badge-pill">0</span>
+          </button>
+          <button class="nav-link" data-view="evaluation">
+            <span class="nav-link-icon" aria-hidden="true">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+            </span>
+            <span>Evaluation</span>
+          </button>
+        </nav>
+      </div>
+
+      <div class="header-right">
+        <!-- System Engine Status Pill -->
+        <div class="system-status" id="system-status-indicator" title="Local Engine & Provider Status">
+          <span class="status-pulse-dot" aria-hidden="true"></span>
+          <span class="status-text">Analyst Engine Active</span>
+          <span class="version-tag" id="model-pill">gemini-2.5-flash</span>
+        </div>
+
+        <!-- Recent Runs Drawer Trigger -->
+        <button type="button" class="btn-history-trigger" id="history-drawer-toggle" aria-label="Open run history" title="View Recent Runs">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <span>Recent Runs</span>
+          <span class="badge-pill" id="history-count">39</span>
+        </button>
+
+        <!-- Quick Challenge Demo Button -->
+        <button type="button" class="btn-demo-action" id="header-demo-btn">
+          <span>Run Challenge Demo</span>
+          <span class="btn-arrow" aria-hidden="true">↗</span>
+        </button>
+
+        <!-- Theme Toggle -->
+        <button type="button" id="theme-toggle" class="theme-toggle" aria-label="Toggle dark/light theme" title="Toggle theme">
+          <span class="theme-toggle-icon" aria-hidden="true">◐</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Portal Layout -->
+  <main class="main-portal">
+    <!-- Breadcrumb Indicator (Accessible & synced) -->
+    <div class="portal-container top-subbar">
+      <div class="breadcrumb-nav">
+        <span class="bc-root">EvidenceLoop</span>
+        <span class="bc-sep">/</span>
+        <strong id="breadcrumb" class="bc-active">Research</strong>
+      </div>
+      <div class="subbar-meta">
+        <span class="subbar-tag">INDEPENDENT VERIFICATION PLATFORM</span>
+      </div>
+    </div>
+
+    <!-- VIEW 1: RESEARCH (LANDING & SEARCH) -->
+    <section id="research-view" class="view">
+      <div class="portal-container">
+        
+        <!-- HERO SECTION (Matching User's Reference Images) -->
+        <div class="hero-card">
+          <div class="hero-grid">
+            <!-- Left Hero Content -->
+            <div class="hero-left">
+              <div class="hero-pill">
+                <span class="hero-sparkle" aria-hidden="true">⚡</span>
+                <span>AUTONOMOUS ANALYST &amp; AUDITOR</span>
+              </div>
+              <h1 class="hero-title" id="page-title">Find the verified truth that you deserve</h1>
+              <p class="hero-subtitle" id="page-description">An analyst finds the facts. An independent auditor checks the receipts. Every correction makes the next question better.</p>
+
+              <!-- Floating Hero Search Bar -->
+              <div class="hero-search-card">
+                <form id="research-form">
+                  <div class="search-input-group">
+                    <span class="search-icon" aria-hidden="true">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                    </span>
+                    <input type="text" id="question" required minlength="8" maxlength="2000" placeholder="What would you like to investigate? (e.g. Zepto funding, Titan jewellery revenue, Kalyan store additions...)" autocomplete="off">
+                  </div>
+
+                  <!-- Autocomplete Suggestions Dropdown -->
+                  <div id="question-suggestions" class="question-suggestions" role="listbox" aria-label="Suggested research questions"></div>
+
+                  <!-- Search Controls Bar: Dates, Toggle & Submit -->
+                  <div class="search-controls-row">
+                    <div class="search-dates-wrapper">
+                      <div class="date-chip">
+                        <span class="date-chip-label">From</span>
+                        <input type="date" id="start-date" value="2024-01-01" required>
+                      </div>
+                      <span class="date-sep" aria-hidden="true">→</span>
+                      <div class="date-chip">
+                        <span class="date-chip-label">To</span>
+                        <input type="date" id="end-date" value="2025-12-31" required>
+                      </div>
+                    </div>
+
+                    <div class="search-actions-wrapper">
+                      <label class="toggle-control" title="Apply verified rules from previous corrections">
+                        <input type="checkbox" id="memory-enabled" checked>
+                        <span class="toggle-slider" aria-hidden="true"></span>
+                        <span class="toggle-text">Feedback memory</span>
+                      </label>
+
+                      <button type="submit" class="btn-search-submit" id="research-submit">
+                        <span>Begin Research</span>
+                        <span class="btn-arrow" aria-hidden="true">↗</span>
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              </div>
+
+              <!-- Quick Starter Suggestion Chips -->
+              <div class="hero-suggestions">
+                <span class="hero-suggestions-label">POPULAR QUESTIONS:</span>
+                <div class="chips-group">
+                  <button type="button" class="hero-chip" data-question="For Kalyan Jewellers in FY2024-25, distinguish gross store openings, closures, net additions and closing count. Report unavailable metrics explicitly.">Retail expansion ↗</button>
+                  <button type="button" class="hero-chip" data-question="What amount did Zepto raise in June 2024, on what date, and from which investors? Distinguish funding from valuation.">Funding rounds ↗</button>
+                  <button type="button" class="hero-chip" data-question="What jewellery revenue did Titan report for FY2023-24? Distinguish segment revenue from total company revenue.">Titan FY24 Revenue ↗</button>
+                  <button type="button" class="hero-chip" data-question="How many Kalyan Jewellers showrooms existed at 31 March 2024?">Showroom counts ↗</button>
+                </div>
+              </div>
+
+              <div class="hero-stats-row">
+                <div class="hero-stat-item"><strong class="stat-number">4-stage</strong><span class="stat-desc">Research workflow</span></div>
+                <div class="hero-stat-sep" aria-hidden="true"></div>
+                <div class="hero-stat-item"><strong class="stat-number">Atomic</strong><span class="stat-desc">Claim-level answers</span></div>
+                <div class="hero-stat-sep" aria-hidden="true"></div>
+                <div class="hero-stat-item"><strong class="stat-number">Traceable</strong><span class="stat-desc">Source-linked evidence</span></div>
+              </div>
+            </div>
+
+            <div class="hero-right">
+              <div class="hero-visual-container">
+                <img src="/static/analyst-hero.jpg" alt="Research analyst reviewing evidence" class="hero-main-img" width="560" height="420" loading="eager">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- "HOW IT WORKS" (Execution Pipeline - Matching Image 1) -->
+        <section class="section-how-it-works">
+          <div class="section-header-center">
+            <span class="section-badge">EXECUTION PIPELINE</span>
+            <h2 class="section-title">How It Works</h2>
+            <p class="section-subtitle">Four rigorous verification checkpoints before any answer is retained</p>
+          </div>
+
+          <div class="pipeline-cards-grid">
+            <!-- Step 1 -->
+            <div class="pipeline-card">
+              <div class="pipeline-card-top">
+                <span class="pipeline-step-badge">01</span>
+                <div class="pipeline-icon" aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                </div>
+              </div>
+              <h3 class="pipeline-title">Deconstruct &amp; Plan</h3>
+              <p class="pipeline-desc">Decomposes questions into explicit subquestions, defines target entities, time periods, and explicit evidence gaps before issuing searches.</p>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="pipeline-card">
+              <div class="pipeline-card-top">
+                <span class="pipeline-step-badge">02</span>
+                <div class="pipeline-icon" aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                </div>
+              </div>
+              <h3 class="pipeline-title">Parallel Retrieval</h3>
+              <p class="pipeline-desc">Issues targeted web queries, fetches full primary source web pages in parallel, and synthesizes atomic factual claims with exact citations.</p>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="pipeline-card">
+              <div class="pipeline-card-top">
+                <span class="pipeline-step-badge">03</span>
+                <div class="pipeline-icon" aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                </div>
+              </div>
+              <h3 class="pipeline-title">Independent Audit</h3>
+              <p class="pipeline-desc">An isolated auditor model re-fetches primary sources, verifies exact substring quote provenance, and audits mathematical consistency.</p>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="pipeline-card">
+              <div class="pipeline-card-top">
+                <span class="pipeline-step-badge">04</span>
+                <div class="pipeline-icon" aria-hidden="true">
+                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                </div>
+              </div>
+              <h3 class="pipeline-title">Repair &amp; Learn</h3>
+              <p class="pipeline-desc">Attempts one repair per flagged claim. Once re-audited and verified, checking lessons are stored in persistent memory for future research.</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- "EXPLORE BY CATEGORY" (Matching User's Reference Images) -->
+        <section class="section-categories">
+          <div class="section-header-center">
+            <span class="section-badge">RESEARCH DOMAINS</span>
+            <h2 class="section-title">Explore by Category</h2>
+            <p class="section-subtitle">Select an investigation domain to auto-configure research scope and verifiable parameters</p>
+          </div>
+
+          <div class="categories-grid">
+            <!-- Category 1: Financial & Revenue -->
+            <div class="category-card" data-domain="financial" data-sample="What jewellery revenue did Titan report for FY2023-24? Distinguish segment revenue from total company revenue." data-start="2023-04-01" data-end="2024-03-31">
+              <div class="category-icon-box cat-finance">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              </div>
+              <h3 class="category-title">Financial Metrics</h3>
+              <p class="category-desc">Revenue reconciliations, segment earnings, EBITDA margins, and audited balance sheet figures.</p>
+              <div class="category-action">
+                <span>Investigate query</span>
+                <span class="cat-arrow" aria-hidden="true">→</span>
+              </div>
+            </div>
+
+            <!-- Category 2: Retail Expansion -->
+            <div class="category-card" data-domain="retail" data-sample="For Kalyan Jewellers in FY2024-25, distinguish gross store openings, closures, net additions and closing count. Report unavailable metrics explicitly." data-start="2024-04-01" data-end="2025-03-31">
+              <div class="category-icon-box cat-retail">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m2 7 4.41-4.41A2 2 0 0 1 7.83 2h8.34a2 2 0 0 1 1.42.59L22 7"/><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><path d="M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4"/><path d="M2 7h20"/></svg>
+              </div>
+              <h3 class="category-title">Retail Expansion</h3>
+              <p class="category-desc">Store counts, net vs gross additions, showroom footprints, and geographic expansion filings.</p>
+              <div class="category-action">
+                <span>Investigate query</span>
+                <span class="cat-arrow" aria-hidden="true">→</span>
+              </div>
+            </div>
+
+            <!-- Category 3: Venture & Funding -->
+            <div class="category-card" data-domain="venture" data-sample="What amount did Zepto raise in June 2024, on what date, and from which investors? Distinguish funding from valuation." data-start="2024-06-01" data-end="2024-06-30">
+              <div class="category-icon-box cat-venture">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              </div>
+              <h3 class="category-title">Venture &amp; Capital</h3>
+              <p class="category-desc">Series rounds, valuations vs funding amount, cap table investors, and regulatory filings.</p>
+              <div class="category-action">
+                <span>Investigate query</span>
+                <span class="cat-arrow" aria-hidden="true">→</span>
+              </div>
+            </div>
+
+            <!-- Category 4: Corporate Governance -->
+            <div class="category-card" data-domain="governance" data-sample="What is the history of the Mughal Empire and its major rulers?" data-start="2024-01-01" data-end="2025-12-31">
+              <div class="category-icon-box cat-gov">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M4 18h16"/><path d="M6 14v4"/><path d="M10 14v4"/><path d="M14 14v4"/><path d="M18 14v4"/><polygon points="12 2 20 7 4 7"/></svg>
+              </div>
+              <h3 class="category-title">Governance &amp; History</h3>
+              <p class="category-desc">Executive movements, regulatory sanctions, historical timelines, and verified archival documents.</p>
+              <div class="category-action">
+                <span>Investigate query</span>
+                <span class="cat-arrow" aria-hidden="true">→</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Empty State (Shown before any run is active) -->
+        <div id="empty-state" class="empty-state-card">
+          <div class="empty-state-badge">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="m9 15 2 2 4-4"/></svg>
+          </div>
+          <h3 class="empty-state-title">Every claim deserves a verifiable paper trail.</h3>
+          <p class="empty-state-text">Your research plan, cited answer, and independent audit will appear here.<br>Want to inspect the verification loop in action right away?</p>
+          <div class="empty-state-actions">
+            <button type="button" class="btn-demo-action" id="try-challenge">
+              <span>Run Challenge Lab Demo (Zero Cost)</span>
+              <span class="btn-arrow" aria-hidden="true">↗</span>
+            </button>
+            <button type="button" class="btn-secondary-action" id="view-latest-run-btn">
+              <span>View Latest Audited Report</span>
+              <span aria-hidden="true">↓</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- VIEW 2: CHALLENGE LAB (Interactive Sandbox) -->
+    <section id="challenge-view" class="view hidden">
+      <div class="portal-container">
+        <div class="challenge-hero-banner">
+          <div class="challenge-banner-content">
+            <span class="challenge-banner-pill">CONTROLLED EXPERIMENT · SYNTHETIC SOURCES</span>
+            <h2 class="challenge-banner-title">Challenge → Correct → Transfer</h2>
+            <p class="challenge-banner-desc">Six deliberate mistakes. Three correct controls. One unavailable source.<br>See what the auditor catches, what changes, and which lessons survive into subsequent research.</p>
+          </div>
+          <div class="challenge-banner-badge" aria-hidden="true">⌁</div>
+        </div>
+
+        <div class="challenge-control-panel">
+          <div class="challenge-control-info">
+            <h3 class="challenge-control-title">Choose a verifier</h3>
+            <p class="challenge-control-desc">Offline fixture rules test the workflow offline with zero API cost. Gemini tests model judgments on the exact same labelled documents.</p>
+          </div>
+          <div class="challenge-control-actions">
+            <select id="challenge-provider" aria-label="Challenge verifier" class="select-verifier">
+              <option value="fixture">Offline fixture rules · no API cost (Instant)</option>
+              <option value="model">Gemini · model evaluation</option>
+            </select>
+            <button id="challenge-start" class="btn-challenge-submit">
+              <span>Run Challenge</span>
+              <span class="btn-arrow" aria-hidden="true">↗</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="notice lab-notice">
+          <strong>Important distinction:</strong> Fixture results are deterministic software checks, not measured model accuracy. Challenge lessons stay strictly separate from live research memory.
+        </div>
+      </div>
+    </section>
+
+    <!-- VIEW 3: FEEDBACK MEMORY -->
+    <section id="memory-view" class="view hidden">
+      <div class="portal-container">
+        <div class="memory-header-box">
+          <div class="memory-header-text">
+            <span class="section-badge">PERSISTENT KNOWLEDGE</span>
+            <h2 class="section-title">Lessons, with receipts.</h2>
+            <p class="section-subtitle">Narrow checks · verified evidence · recorded uses across research runs</p>
+          </div>
+        </div>
+        <div id="memory-list" class="memory-cards-grid"></div>
+      </div>
+    </section>
+
+    <!-- VIEW 4: EVALUATION BENCHMARK -->
+    <section id="evaluation-view" class="view hidden">
+      <div class="portal-container">
+        <div class="eval-header-box">
+          <span class="section-badge">FROZEN BENCHMARK</span>
+          <h2 class="section-title">Does the next answer get better?</h2>
+          <p class="section-subtitle">Four training questions, then four held-out questions with memory off and on under identical provider budgets.</p>
+        </div>
+        <div id="evaluation-results" class="eval-results-container"></div>
+        <div class="suite-wrapper">
+          <h3 class="suite-heading">Frozen 8-Question Benchmark Suite</h3>
+          <div id="question-suite" class="table-container"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RUN RESULTS & AUDIT INSPECTOR PANEL (Appears whenever inspecting any run) -->
+    <section id="run-panel" class="portal-container hidden run-panel-container" aria-live="polite">
+      <!-- Run Title Bar -->
+      <div class="run-header-card">
+        <div class="run-header-left">
+          <span id="run-mode" class="run-mode-pill"></span>
+          <h2 id="run-question" class="run-question-title"></h2>
+        </div>
+        <div class="run-header-actions">
+          <span id="run-status" class="badge"></span>
+          <a id="export-run" class="btn-export-trace" download title="Export full JSON trace">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>Export Trace JSON</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Error / Quota Notice (If any) -->
+      <div id="run-error"></div>
+
+      <!-- Challenge Score Banner (When viewing challenge runs) -->
+      <div id="run-score"></div>
+
+      <!-- Execution Metrics Ribbon -->
+      <div class="metrics-ribbon-card">
+        <div id="run-metrics" class="metrics-grid"></div>
+      </div>
+
+      <!-- Tab Navigation -->
+      <div class="tabs-nav-bar">
+        <div class="tabs-list" role="tablist">
+          <button class="tab-btn selected" data-tab="answer" role="tab">Cited Answer</button>
+          <button class="tab-btn" data-tab="plan" role="tab">Research Plan</button>
+          <button class="tab-btn" data-tab="audit" role="tab">Claim Audit</button>
+          <button class="tab-btn" data-tab="repairs" role="tab">Corrections</button>
+          <button class="tab-btn" data-tab="sources" role="tab">Sources</button>
+          <button class="tab-btn" data-tab="activity" role="tab">Activity</button>
+          <button class="tab-btn" data-tab="lessons" role="tab">Memory</button>
+        </div>
+      </div>
+
+      <!-- Tab Content Area -->
+      <div id="run-content" class="run-content-area"></div>
+    </section>
+
+    <!-- TRUST & SCRUTINY GUARANTEES (Matching Image 1 "What our customers say") -->
+    <section class="section-trust">
+      <div class="portal-container">
+        <div class="section-header-center">
+          <span class="section-badge">SCRUTINY PRINCIPLES</span>
+          <h2 class="section-title">Why Scrutiny Matters</h2>
+          <p class="section-subtitle">How EvidenceLoop solves the hallucination problem in automated research</p>
+        </div>
+
+        <div class="trust-cards-grid">
+          <div class="trust-card">
+            <div class="trust-card-top">
+              <span class="trust-quote-mark">“</span>
+              <span class="trust-tag">PROVENANCE</span>
+            </div>
+            <h3 class="trust-title">Receipts Over Probabilities</h3>
+            <p class="trust-desc">Every claim must cite an exact substring from an independently re-fetched source document. If a sentence cannot be found verbatim in the source text, it is flagged.</p>
+          </div>
+
+          <div class="trust-card">
+            <div class="trust-card-top">
+              <span class="trust-quote-mark">“</span>
+              <span class="trust-tag">ISOLATION</span>
+            </div>
+            <h3 class="trust-title">Independent Auditor Context</h3>
+            <p class="trust-desc">The auditor does not read the analyst's draft reasoning chain. It independently fetches the cited URLs, evaluates the claims against the raw text, and verifies math independently.</p>
+          </div>
+
+          <div class="trust-card">
+            <div class="trust-card-top">
+              <span class="trust-quote-mark">“</span>
+              <span class="trust-tag">ACCUMULATION</span>
+            </div>
+            <h3 class="trust-title">Persistent Correction Memory</h3>
+            <p class="trust-desc">When a claim is repaired (such as distinguishing net additions from gross store openings), the lesson is persisted into memory and applied to future research plans.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BOTTOM CTA BANNER (Matching Image 1 Blue Action Banner) -->
+    <section class="section-bottom-cta">
+      <div class="portal-container">
+        <div class="cta-banner-card">
+          <div class="cta-banner-content">
+            <h2 class="cta-banner-title">Experience Evidence-First Autonomous Research</h2>
+            <p class="cta-banner-desc">Run our 10-case controlled challenge instantly or test any live research question with verified quote receipts.</p>
+          </div>
+          <div class="cta-banner-actions">
+            <button type="button" class="btn-cta-light" id="bottom-demo-btn">
+              <span>Run Challenge Lab ↗</span>
+            </button>
+            <button type="button" class="btn-cta-ghost" id="bottom-scroll-top">
+              <span>Ask a Research Question ↑</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Site Footer -->
+    <footer class="site-footer">
+      <div class="portal-container footer-inner">
+        <div class="footer-left">
+          <div class="footer-brand">
+            <span class="footer-brand-title">EvidenceLoop</span>
+            <span class="footer-brand-desc">Autonomous Analyst &amp; Auditor</span>
+          </div>
+          <p class="footer-copy">Traceable by design. Real audit receipts, isolated context, zero unbacked claims.</p>
+        </div>
+        <div class="footer-right">
+          <div class="footer-quote">
+            <em>"No source, no certainty."</em>
+          </div>
+          <div class="footer-meta">
+            <span>Thuli Problem 03 · Analyst &amp; Auditor</span>
+          </div>
+        </div>
+      </div>
+    </footer>
+  </main>
+
+  <!-- Slide-Over Recent Runs Drawer -->
+  <div id="history-drawer" class="history-drawer-overlay hidden" aria-hidden="true">
+    <div class="drawer-backdrop" id="history-drawer-backdrop"></div>
+    <div class="drawer-panel">
+      <div class="drawer-header">
+        <div class="drawer-title-group">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <h3>Recent Research Runs</h3>
+        </div>
+        <div class="drawer-header-actions">
+          <button id="refresh-history" class="btn-drawer-icon" aria-label="Refresh runs" title="Refresh runs list">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
+          </button>
+          <button id="close-history-drawer" class="btn-drawer-icon" aria-label="Close drawer" title="Close drawer">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Drawer Search Input -->
+      <div class="drawer-search-box">
+        <input type="text" id="drawer-search-input" placeholder="Filter runs by question or status...">
+      </div>
+
+      <!-- Drawer Runs List -->
+      <div id="history" class="drawer-runs-list">
+        <p class="muted small">Loading research history...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Alert -->
+  <div id="toast" role="alert" class="hidden"></div>
+</body>
+</html>
